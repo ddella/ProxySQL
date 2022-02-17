@@ -47,12 +47,13 @@ SHOW TABLES FROM stats;
       +--------------------------------------+
       21 rows in set (0.003 sec)
 
+#### stats_mysql_connection_pool
 
 The `stats_mysql_connection_pool` table shows information related to the MySQL backends, connection and overall traffic. The status of each server is tracked based on the health check results.
 
 * Healthy servers will have a status of `ONLINE`
-* Servers termporarily removed are `SHUNNED`
-* Server removed (completely removed, or moved away from a hostgroup) is internally marked as `OFFLINE_HARD`
+* Servers termporarily removed are marked as `SHUNNED`
+* Servers completely removed, or moved away from a hostgroup, are marked as `OFFLINE_HARD`
 
 ```sql
 SELECT * FROM stats.stats_mysql_connection_pool;
@@ -67,11 +68,70 @@ SELECT * FROM stats.stats_mysql_connection_pool;
       +-----------+-------------+----------+--------+----------+----------+--------+---------+-------------+---------+-------------------+-----------------+-----------------+------------+
       3 rows in set (0.004 sec)
 
+#### stats_mysql_commands_counters
+
+The `stats_mysql_commands_counters` table returns detailed information about the type of statements executed, and the distribution of execution time.
+
+```sql
+SELECT * FROM stats_mysql_commands_counters WHERE Total_cnt;
+```
+
+      +---------+---------------+-----------+-----------+-----------+---------+---------+----------+----------+-----------+-----------+--------+--------+---------+----------+
+      | Command | Total_Time_us | Total_cnt | cnt_100us | cnt_500us | cnt_1ms | cnt_5ms | cnt_10ms | cnt_50ms | cnt_100ms | cnt_500ms | cnt_1s | cnt_5s | cnt_10s | cnt_INFs |
+      +---------+---------------+-----------+-----------+-----------+---------+---------+----------+----------+-----------+-----------+--------+--------+---------+----------+
+      | SELECT  | 104051        | 78        | 19        | 1         | 12      | 44      | 0        | 2        | 0         | 0         | 0      | 0      | 0       | 0        |
+      | SET     | 0             | 150       | 150       | 0         | 0       | 0       | 0        | 0        | 0         | 0         | 0      | 0      | 0       | 0        |
+      +---------+---------------+-----------+-----------+-----------+---------+---------+----------+----------+-----------+-----------+--------+--------+---------+----------+
+      2 rows in set (0.007 sec)
+
+#### stats_mysql_query_digest
+
+Query information is tracked in the `stats_mysql_query_digest` table which provides query counts per backend, reponse times per query as well as the actual query text as well as the query digest which is a unique identifier for every query type.
+
+```sql
+SELECT * FROM stats_mysql_query_digest ORDER BY sum_time DESC;
+```
+
+      +-----------+--------------------+----------+----------------+--------------------+--------------------------------+------------+------------+------------+----------+----------+----------+-------------------+---------------+
+      | hostgroup | schemaname         | username | client_address | digest             | digest_text                    | count_star | first_seen | last_seen  | sum_time | min_time | max_time | sum_rows_affected | sum_rows_sent |
+      +-----------+--------------------+----------+----------------+--------------------+--------------------------------+------------+------------+------------+----------+----------+----------+-------------------+---------------+
+      | 1         | information_schema | clients  |                | 0x29F2A166686DC769 | SELECT @@hostname hostname     | 78         | 1645080803 | 1645115307 | 104051   | 449      | 16638    | 0                 | 78            |
+      | 1         | information_schema | clients  |                | 0x822FA0E1B929D2B7 | SET @@session.autocommit = OFF | 75         | 1645080803 | 1645115307 | 0        | 0        | 0        | 0                 | 0             |
+      | 1         | information_schema | clients  |                | 0x3DDFFFFB35C368B8 | SET NAMES ? COLLATE ?          | 75         | 1645080803 | 1645115307 | 0        | 0        | 0        | 0                 | 0             |
+      +-----------+--------------------+----------+----------------+--------------------+--------------------------------+------------+------------+------------+----------+----------+----------+-------------------+---------------+
+      3 rows in set (0.010 sec)
+
+
+```sql
+SELECT hostgroup hg, sum_time, count_star, digest_text FROM stats_mysql_query_digest ORDER BY sum_time DESC;
+```
+
+      +----+----------+------------+--------------------------------+
+      | hg | sum_time | count_star | digest_text                    |
+      +----+----------+------------+--------------------------------+
+      | 1  | 104051   | 78         | SELECT @@hostname hostname     |
+      | 1  | 0        | 75         | SET @@session.autocommit = OFF |
+      | 1  | 0        | 75         | SET NAMES ? COLLATE ?          |
+      +----+----------+------------+--------------------------------+
+      3 rows in set (0.006 sec)
 
 
 
+### MySQL Query Rules
 
+Query rules are a very powerful vehicle to control traffic passing through ProxySQL and are configured in the mysql_query_rules table.
 
+**TODO**
+
+### Query Caching
+
+A popular use-case for ProxySQL is to act as a query cache. By default, queries aren’t cached, this is enabled by setting `cache_ttl` (in milliseconds) on a rule defined in `mysql_query_rules`.
+
+**TODO**
+
+### Query Rewrite
+
+**TODO**
 
 ## Useful Links
 
