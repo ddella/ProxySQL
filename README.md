@@ -63,7 +63,13 @@ mysql_variables=
 }
 ```
 
-I'm using a custom network and I assign a static IP address for the container. Change the `/path/to/proxysql.conf` for the real path on your local disk.
+I'm using a custom network and I assign a static IP address for the container. The local container directory `/etc/proxysql.cnf` is mapped to the local disk. Change the `/path/to/proxysql.conf` for the real path on your local disk.
+
+ProxySQL TCP ports.
+
+. `TCP/6032` - ProxySQL admin, for configuration and admistration.
+. `TCP/6033` - ProxySQL mysql, for SQL query.
+
 
 ```docker
 docker run -d --network MariaDB --rm \
@@ -72,9 +78,7 @@ docker run -d --network MariaDB --rm \
 --ip 172.31.1.20 \
 -p 16032:6032 \
 -p 16033:6033 \
--p 16070:6070 \
 -v /path/to/proxysql.conf:/etc/proxysql.cnf \
---env TZ='America/New_York' \
 proxysql/proxysql
 ```
 
