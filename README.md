@@ -123,7 +123,7 @@ A username/password needs to be created on the **MariaDB servers** for monitorin
 
 #### Execute the following commands on either 'master1' or 'master2'
 
-> Make sure you create this username/password on the **MariaDB servers** and not on the ProxySQL! You just need to create it on one of the master server. It will get replicated to the others.
+> Make sure you create this username/password on the **MariaDB servers** and not on the ProxySQL! You just need to create it on one of the master servers. It will get replicated to the other.
 
 ```sql
 GRANT USAGE, REPLICATION CLIENT ON *.* TO 'monitor'@'172.31.1.0/255.255.255.0' IDENTIFIED BY 'monitor';
@@ -132,7 +132,7 @@ FLUSH PRIVILEGES;
 
 #### Add the credentials of the `monitor` user to ProxySQL
 
-This is executed on the ProxySQL server.
+> This is executed on the ProxySQL server.
 
 ```sql
 UPDATE global_variables SET variable_value='monitor' WHERE variable_name='mysql-monitor_username';
@@ -145,19 +145,19 @@ Changes made to the MySQL Monitor in table `global_variables` will be applied af
 UPDATE global_variables SET variable_value='2000'  WHERE variable_name IN ('mysql-monitor_connect_interval','mysql-monitor_ping_interval','mysql-monitor_read_only_interval');
 LOAD MYSQL VARIABLES TO RUNTIME;
 SAVE MYSQL VARIABLES TO DISK;
-SHOW TABLES FROM monitor;
 ```
 
 ### Backend’s health check
 
-Verify that the servers are being monitored correctly with the commands `SELECT * FROM monitor.mysql_server_connect_log ORDER BY time_start_us DESC LIMIT 3;` and `
-SELECT * FROM monitor.mysql_server_ping_log ORDER BY time_start_us DESC LIMIT 3;
-`.
+Verify that the servers are being monitored correctly with the commands below:
 
 ```sql
 SELECT * FROM monitor.mysql_server_connect_log ORDER BY time_start_us DESC LIMIT 3;
 SELECT * FROM monitor.mysql_server_ping_log ORDER BY time_start_us DESC LIMIT 3;
 ```
+
+This is the exxpected results.
+
 
 	+-------------+------+------------------+-------------------------+---------------+
 	| hostname    | port | time_start_us    | connect_success_time_us | connect_error |
@@ -180,10 +180,13 @@ SELECT * FROM monitor.mysql_server_ping_log ORDER BY time_start_us DESC LIMIT 3;
 #### Activate the configuration
 
 When everything is healthy, activate the configuration with:
+
 ```sql
 LOAD MYSQL SERVERS TO RUNTIME;
 ```
+
 Check the table `mysql_servers`.
+
 ```sql
 SELECT * FROM mysql_servers;
 ```
@@ -198,7 +201,7 @@ SELECT * FROM mysql_servers;
 
 ### MySQL replication hostgroups
 
-The following command will place all the MySQL backend servers that are either configured in host group 1 or 2 into their respective host group based on their read_only value:
+The following command will place all the MySQL backend servers that are either configured in host group 1 or 2 into their respective host group based on their `read_only` value:
 
 ```sql
 INSERT INTO mysql_replication_hostgroups (writer_hostgroup,reader_hostgroup,comment) VALUES (1,2,'cluster1');
@@ -210,7 +213,7 @@ To enable the replication host group, load it to run time.
 LOAD MYSQL SERVERS TO RUNTIME;
 ```
 
-The `read_only` check results are logged to the `mysql_servers_read_only_log` table in the `monitor` database. In this case, server `172.31.1.13` is `slave1` and is `read_only`. Verify that  ProxySQL is monitoring the `read_only` value for the servers with the command:
+The `read_only` check results are logged to the `mysql_servers_read_only_log` table in the `monitor` database. In this case, server `172.31.1.13` is `slave1` and is `read_only`. Verify that ProxySQL is monitoring the `read_only` value for the servers with the command:
 
 ```sql
 SELECT * FROM monitor.mysql_server_read_only_log ORDER BY time_start_us DESC LIMIT 3;
