@@ -237,8 +237,17 @@ SAVE MYSQL VARIABLES TO DISK;
 
 ## MySQL Users
 
-After configuring the MySQL server backends in `mysql_servers`, the next step is to configure `mysql` users on ProxySQL **and** the backend servers. In ProxySQL, this is performed by adding entries to the `mysql_users` table. On MariaDB, this is performed by adding entries to the `user` in the database `sys`
-table.
+The username in this section is the one used by the client or if you prefer the frontend. As an example, if you have a website developped in PHP, 
+
+```php
+   $host       = "proxysql"; // the SQL server (or proxy or load balancer)
+   $username   = "clients";  // the username to connect on the database
+   $password   = "clients";  // the password
+   $dbname     = "webapp";   // the database name
+   $dbtable    = "users";    // the table in the database
+````
+
+After configuring the MySQL server backends in `mysql_servers`, the next step is to configure `mysql` users on ProxySQL **and** the backend servers. In ProxySQL, this is performed by adding entries to the `mysql_users` table. On MariaDB, this is performed by adding entries to the `user` table in the database `mysql`.
 
 ### ProxySQL
 
