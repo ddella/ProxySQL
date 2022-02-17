@@ -235,9 +235,9 @@ SAVE MYSQL SERVERS TO DISK;
 SAVE MYSQL VARIABLES TO DISK;
 ```
 
-## MySQL Users
+## MySQL User for frontend
 
-> The username, in this section, is the one used by the client or if you prefer, the frontend. As an example, if you have a website developped in PHP, it's the username configured in your PHP code to access the database. See below and example of what would be our configuration with a ProxySQL in front of MariaDB SQL servers.
+> The username, in this section, is the one used by the client or if you prefer, the frontend. As an example, if you have a website developped in PHP, it's the username configured in your PHP code to access the database. See below an example of what would be our configuration in the PHP code with a ProxySQL in front of MariaDB SQL servers.
 
 ```php
 $host       = "proxysql"; // the SQL server (or proxy or load balancer)
@@ -249,7 +249,7 @@ $dbtable    = "users";    // the table in the database
 
 After configuring the MySQL server backends in `mysql_servers`, the next step is to configure `mysql` users on ProxySQL **and** the backend servers. In ProxySQL, this is performed by adding entries to the `mysql_users` table. On MariaDB, this is performed by adding entries to the `user` table in the database `mysql`.
 
-### ProxySQL
+### MySQL User on ProxySQL
 
 The table on the ProxySQL server is initially empty, to add users, specify the `username`, `password` and `default_hostgroup`. This is the `username/password` received by the clients. The clients might be a PHP front end that queries the database.
 
@@ -277,7 +277,7 @@ SELECT * FROM mysql_users;
 	1 row in set (0.002 sec)
 
 
-### Backend servers
+### MySQL User on backend servers
 
 Execute this command on any of the MariaDB master server. In this workshop I have a database `webapp` that I need to give access to the front end. Adjust the database for your needs.
 
@@ -301,17 +301,16 @@ select user,host from mysql.user;
 	+--------------+--------------------------+
 	4 rows in set (0.005 sec)
 
-
 ## Testing
 
 ProxySQL is now ready to serve traffic on port `6033`. Let's use two methods to test our proxy.
 
 1. A python script on the Docker host that will send requests to `TCP/16033`. This port is mapped to `TCP/6033` in the ProxySQL container.
-2. A new container with the `mysql`client command line interface. 
+2. A new container, in the same Docker network as the ProcsySQL, with the `mysql`client command line interface. This client will use `TCP/6033`.
 
 ### Python
 
-ProxySQL is now ready to serve traffic on port `6033` or on port `16033` from the Docker host. The following script is not meant to be optimal but rather to initiate as many connections as possible to have ProxySQL load balance the requests.
+The following script is not meant to be optimal but rather to initiate as many connections as possible on ProxySQL for it to load balance the requests.
 
 ```python
 import mysql.connector  
