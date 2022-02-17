@@ -70,6 +70,7 @@ ProxySQL TCP ports.
 . `TCP/6032` - ProxySQL admin, for configuration and admistration.
 . `TCP/6033` - ProxySQL mysql, for SQL query.
 
+Open a `terminal` and start `ProxySQL` from a Docker container.
 
 ```docker
 docker run -d --network MariaDB --rm \
@@ -106,7 +107,7 @@ SELECT * FROM mysql_replication_hostgroups;
 SELECT * FROM mysql_query_rules;
 ```
 
-The results for each command should be :
+The results for each command should be empty:
 ```sql
 Empty set (0.00 sec)
 ```
@@ -398,6 +399,9 @@ mysql -u clients -pclients -h proxysql -P6033 -e"SELECT @@hostname hostname"
 	| master1  |
 	+----------+
 
+## ProxySQL Statistics
+
+See this [file](README-Statistics.md) for statistics information.
 
 ## Useful Links
 
