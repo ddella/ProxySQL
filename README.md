@@ -11,11 +11,11 @@ In this workshop, I'll demonstrate how to configure a ProxySQL server that front
 * Familiarity with basic [MySQL](https://www.mysqltutorial.org/) commands.
 * Familiarity with [Docker](https://www.docker.com/).
 * Docker Desktop installed locally.
-* Docker container with `mysql` command line interface. I'm using MariaDB.
+* Docker container with `mysql` command line interface. I'm using MariaDB, you could also use MySQL.
 
 ## Let's build the ProxySQL
 
-### Get the image from Docker hub
+### Get ProxySQL image from Docker hub
 
 ```docker
 docker pull proxysql/proxysql
@@ -23,7 +23,7 @@ docker pull proxysql/proxysql
 
 ### Start the ProxySQL server
 
-Before you start the container, you need to prepare a configuration file. This is the minimal file. Save it to a directory with the filename `proxysql.conf`. If you skip this step, you won't be able to connect to the server.
+Before you start the container, you need to prepare a configuration file. If you don't, you won't be able to remotly connect to the server via the command line interface. Below is the minimal file. Save it to a directory with the filename `proxysql.conf`.
 
 ```c
 # Config file contents referred to as "/path/to/proxysql.conf"
@@ -63,7 +63,7 @@ mysql_variables=
 }
 ```
 
-I'm using a custom network and I assign a static IP address for the container. Change the `/path/to/proxysql.conf` for the real path.
+I'm using a custom network and I assign a static IP address for the container. Change the `/path/to/proxysql.conf` for the real path on your local disk.
 
 ```docker
 docker run -d --network MariaDB --rm \
@@ -80,7 +80,7 @@ proxysql/proxysql
 
 ### Start a MySQL client
 
-We need to connect to the ProxySQL server started in the preceding step. I'm using the official MariaDB SQL client. Since the client and ProxySQL containers are in the same network, use the real `TCP-port`. The username and password, for a new ProxySQL, is `radmin/radmin`. Don't use `admin/admin` or you will have the message `ERROR 1040 (42000): User 'admin' can only connect locally`.
+We need to connect to the ProxySQL server started in the preceding step. I'm using the official MariaDB SQL Docker container. Since the client and ProxySQL containers are in the same network, use the real `TCP-port`. The username and password, for a new ProxySQL, is `radmin/radmin`. Don't use `admin/admin` or you will have the message `ERROR 1040 (42000): User 'admin' can only connect locally`.
 
 Open a `terminal` and start another Docker container that has the `mysql`client command line interface.
 
@@ -91,9 +91,10 @@ docker run -it --network MariaDB --rm \
 mariadb \
 mysql -hproxysql -P6032 -uradmin -pradmin --prompt="\u@\h:[\d]>\_"
 ```
-After you connect, the prompt will look like `radmin@proxysql:[(none)]>`. This is where will enter all the commands to configure ProxySQL.
 
-The configuration will be done on those three  `mysql_servers`, `mysql_replication_hostgroups` and `mysql_query_rules` tables. Verify that they are empty.
+After you connect, the prompt will look like `radmin@proxysql:[(none)]>`. This is where we will enter all the commands to configure ProxySQL.
+
+The configuration will be done on those three tables, `mysql_servers`, `mysql_replication_hostgroups` and `mysql_query_rules`. Verify that they are empty before starting.
 
 ```sql
 SELECT * FROM mysql_servers;
@@ -101,14 +102,14 @@ SELECT * from mysql_replication_hostgroups;
 SELECT * from mysql_query_rules;
 ```
 
-The results for each command is :
+The results for each command should be :
 ```sql
 Empty set (0.00 sec)
 ```
 
 ### Add backends
 
-For this workshop, I will assume that you have three MariaDB SQL servers configured for replication. See my other workshop [here](https://github.com/ddella/MariaDB-Replication) to setup three MariaDB with replication. The servers needs to be added to the `mysql_servers` table. The IP addresses of the MariaDB servers are `172.31.1.1[1-3]`.
+For this workshop, I will assume that you have three MariaDB SQL servers configured for replication. See my other workshop [here](https://github.com/ddella/MariaDB-Replication) to setup MariaDB servers with replication. The servers need to be added to the `mysql_servers` table. The IP addresses of the MariaDB servers are `172.31.1.1[1-3]`.
 
 ```sql
 INSERT INTO mysql_servers(hostgroup_id,hostname,port) VALUES (1,'172.31.1.11',3306);
@@ -118,11 +119,11 @@ INSERT INTO mysql_servers(hostgroup_id,hostname,port) VALUES (1,'172.31.1.13',33
 
 ### Configure monitoring
 
-A username/password needs to be created on the **MariaDB servers** for monitoring purposes.  We'll use `monitor/monitor`. The username needs only `USAGE` privileges to connect, ping and check read_only. The username needs also `REPLICATION CLIENT` privilege, if it needs to monitor replication log. See this [link](https://proxysql.com/documentation/backend-monitoring/) for privileges needed.
+A username/password needs to be created on the **MariaDB servers** for monitoring purposes.  We'll use `monitor/monitor`. The username needs only `USAGE` privileges to connect, ping and check read_only. It will also need `REPLICATION CLIENT` privilege, if it needs to monitor replication log. See this [link](https://proxysql.com/documentation/backend-monitoring/) for privileges needed.
 
 #### Execute the following commands on either 'master1' or 'master2'
 
-Make sure you create this username/password on the **MariaDB servers** and not on the ProxySQL! You just need to create it on one of the master server. It will get replicated to the others.
+> Make sure you create this username/password on the **MariaDB servers** and not on the ProxySQL! You just need to create it on one of the master server. It will get replicated to the others.
 
 ```sql
 GRANT USAGE, REPLICATION CLIENT ON *.* TO 'monitor'@'172.31.1.0/255.255.255.0' IDENTIFIED BY 'monitor';
