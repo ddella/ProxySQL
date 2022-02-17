@@ -73,7 +73,7 @@ ProxySQL TCP ports.
 Open a `terminal` and start `ProxySQL` from a Docker container.
 
 ```docker
-docker run -d --network MariaDB --rm \
+docker run -d --network MariaDB \
 --name proxysql \
 --hostname proxysql \
 --ip 172.31.1.20 \
