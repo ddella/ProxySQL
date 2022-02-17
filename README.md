@@ -2,7 +2,7 @@
 
 ## Introduction
 
-In this workshop, I'll demonstrate how to configure a ProxySQL server that fronts some MariaDB SQL servers. The ProxySQL will be hosted in a Docker container and the SQL TCP port  will be exposed on the Docker host. To test the load balancing capability of ProxySQL, I've built a Python script to query the SQL servers and get their host name.
+In this workshop, I'll demonstrate how to configure a ProxySQL server that fronts some MariaDB SQL servers. The ProxySQL will be hosted in a Docker container and the SQL TCP ports will be exposed on the Docker host. To test the load balancing capability of ProxySQL, I've built a Python script to query the SQL servers and get their host name.
 
 ![Architecture](images/architecture.png)  
 
@@ -23,7 +23,7 @@ docker pull proxysql/proxysql
 
 ### Start the ProxySQL server
 
-Before you start the container, you need to prepare a configuration file. If you don't, you won't be able to remotly connect to the server via the command line interface. Below is the minimal file. Save it to a directory with the filename `proxysql.conf`.
+Before you start the container, you need to prepare a configuration file. If you don't, you **won't** be able to remotely connect to the server via the command line interface. Below is the minimal file. Save it to a directory with the filename `proxysql.conf`.
 
 ```c
 # Config file contents referred to as "/path/to/proxysql.conf"
@@ -80,9 +80,9 @@ proxysql/proxysql
 
 ### Start a MySQL client
 
-We need to connect to the ProxySQL server started in the preceding step. I'm using the official MariaDB SQL Docker container. Since the client and ProxySQL containers are in the same network, use the real `TCP-port`. The username and password, for a new ProxySQL, is `radmin/radmin`. Don't use `admin/admin` or you will have the message `ERROR 1040 (42000): User 'admin' can only connect locally`.
+We need to connect to the ProxySQL server started in the preceding step. I'm using the official MariaDB SQL Docker container. Since the client and ProxySQL containers are in the same network, use the real `TCP-port`. The username and password, for a new ProxySQL, is `radmin/radmin`. Do not use `admin/admin` or you will have the message `ERROR 1040 (42000): User 'admin' can only connect locally`.
 
-Open a `terminal` and start another Docker container that has the `mysql`client command line interface.
+Open a `terminal` and start another Docker container that has the `mysql` client command line interface.
 
 ```docker
 docker run -it --network MariaDB --rm \
@@ -119,7 +119,7 @@ INSERT INTO mysql_servers(hostgroup_id,hostname,port) VALUES (1,'172.31.1.13',33
 
 ### Configure monitoring
 
-A username/password needs to be created on the **MariaDB servers** for monitoring purposes.  We'll use `monitor/monitor`. The username needs only `USAGE` privileges to connect, ping and check read_only. It will also need `REPLICATION CLIENT` privilege, if it needs to monitor replication log. See this [link](https://proxysql.com/documentation/backend-monitoring/) for privileges needed.
+We need to create a username that the `Monitor` module will use to connect to the backend, or SQL servers.  We'll use `monitor/monitor`. The username needs only `USAGE` privileges to connect, ping and check read_only. It will need `REPLICATION CLIENT` privilege, if it needs to monitor replication log. See this [link](https://proxysql.com/documentation/backend-monitoring/) for privileges needed.
 
 #### Execute the following commands on either 'master1' or 'master2'
 
@@ -142,14 +142,14 @@ UPDATE global_variables SET variable_value='monitor' WHERE variable_name='mysql-
 Changes made to the MySQL Monitor in table `global_variables` will be applied after executing the `LOAD MYSQL VARIABLES TO RUNTIME` statement. To persist the configuration changes across restarts, the `SAVE MYSQL VARIABLES TO DISK` command must also be executed.
 
 ```sql
-UPDATE global_variables SET variable_value='2000'  WHERE variable_name IN ('mysql-monitor_connect_interval','mysql-monitor_ping_interval','mysql-monitor_read_only_interval');
+UPDATE global_variables SET variable_value='2000' WHERE variable_name IN ('mysql-monitor_connect_interval','mysql-monitor_ping_interval','mysql-monitor_read_only_interval');
 LOAD MYSQL VARIABLES TO RUNTIME;
 SAVE MYSQL VARIABLES TO DISK;
 ```
 
 ### Backend’s health check
 
-Verify that the servers are being monitored correctly with the commands below:
+Verify that the servers are being monitored correctly:
 
 ```sql
 SELECT * FROM monitor.mysql_server_connect_log ORDER BY time_start_us DESC LIMIT 3;
@@ -236,7 +236,7 @@ SAVE MYSQL VARIABLES TO DISK;
 
 ## MySQL User for frontend
 
-> The username, in this section, is the one used by the client or if you prefer, the frontend. As an example, if you have a website developped in PHP, it's the username configured in your PHP code to access the database. See below an example of what would be our configuration in the PHP code with a ProxySQL in front of MariaDB SQL servers.
+> The username, in this section, is the one used by the client or if you prefer, the frontend. As an example, if you have a website developed in PHP, it's the username configured in your PHP code to access the database. See below an example of what would be our configuration in the PHP code with a ProxySQL in front of MariaDB SQL servers.
 
 ```php
 $host       = "proxysql"; // the SQL server (or proxy or load balancer)
@@ -253,7 +253,7 @@ After configuring the MySQL server backends in `mysql_servers`, the next step is
 The table on the ProxySQL server is initially empty, to add users, specify the `username`, `password` and `default_hostgroup`. This is the `username/password` received by the clients. The clients might be a PHP front end that queries the database.
 
 ```sql
-INSERT INTO mysql_users(username,password,default_hostgroup) VALUES ('clients','clients',1);
+INSERT INTO mysql_users(username, password, default_hostgroup) VALUES ('clients','clients',1);
 ```
 
 Do not forget to load the new user in run time. The `save` is optional.
@@ -278,13 +278,13 @@ SELECT * FROM mysql_users;
 
 ### MySQL User on backend servers
 
-Execute this command on any of the MariaDB master server. In this workshop I have a database `webapp` that I need to give access to the front end. Adjust the database for your needs.
+Execute this command on any of the MariaDB master server. In this workshop, I have a database `webapp` that I need to give access to the front end. Adjust the database for your needs.
 
 ```sql
 GRANT ALL PRIVILEGES ON webapp.* TO 'clients'@'172.31.1.0/255.255.255.0' IDENTIFIED BY 'clients';
 FLUSH PRIVILEGES;
 ```
-Check that the user has been created.
+Check that the user has been created. This command can be executed on any of the MariaDB servers, even the slaves.
 
 ```sql
 SELECT user,host FROM mysql.user;
@@ -302,14 +302,16 @@ SELECT user,host FROM mysql.user;
 
 ## Testing
 
-ProxySQL is now ready to serve traffic on port `6033`. Let's use two methods to test our proxy.
+ProxySQL is now ready to serve SQL traffic on port `TCP/6033`. MySQL database server connections usually uses port `TCP/3306`. With ProxySQL, the MySQL database server connection is on port `TCP/6033`. Since I'm using ProxySQL in a container, I'm exposing port `TCP/6033` to the host on port `TCP/16033`.
+
+Let's use two methods to test our proxy.
 
 1. A python script on the Docker host that will send requests to `TCP/16033`. This port is mapped to `TCP/6033` in the ProxySQL container.
-2. A new container, in the same Docker network as the ProxySQL, with the `mysql`client command line interface. This client will use `TCP/6033`.
+2. A new container, in the same Docker network as the ProxySQL, with the `mysql` client command line interface. This client will use `TCP/6033`.
 
 ### Python
 
-The following script is not meant to be optimal but rather to initiate as many connections as possible on ProxySQL for it to load balance the requests.
+The following script is not meant to be optimal but rather to initiate as many connections as possible on ProxySQL for it to load balance the requests. This script in ran outside Docker so the port to access ProxySQL is `TCP/16033`.
 
 ```python
 import mysql.connector  
@@ -370,7 +372,7 @@ if __name__ == '__main__':
 
 ### MySQL command line interface
 
-Exit the SQL client started at the beginning of this workshop. Use the same image but with a different SQL statement. The port now is `TCP/6033` which is the default port used for the MySQL protocol. If you execute the query multiple times, you will see responses from `master1` and `master2` in round robin.
+Exit the SQL client started at the beginning of this workshop. Use the same image but with a different SQL statement. The port now is `TCP/6033`, since I'm inside the MariaDB network. If you execute the query multiple times, you will see responses from `master1` and `master2` in round robin.
 
 ```sh
 docker run -it --network MariaDB --rm \
