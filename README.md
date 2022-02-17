@@ -98,8 +98,8 @@ The configuration will be done on those three tables, `mysql_servers`, `mysql_re
 
 ```sql
 SELECT * FROM mysql_servers;
-SELECT * from mysql_replication_hostgroups;
-SELECT * from mysql_query_rules;
+SELECT * FROM mysql_replication_hostgroups;
+SELECT * FROM mysql_query_rules;
 ```
 
 The results for each command should be :
@@ -156,8 +156,7 @@ SELECT * FROM monitor.mysql_server_connect_log ORDER BY time_start_us DESC LIMIT
 SELECT * FROM monitor.mysql_server_ping_log ORDER BY time_start_us DESC LIMIT 3;
 ```
 
-This is the exxpected results.
-
+This is the expected results.
 
 	+-------------+------+------------------+-------------------------+---------------+
 	| hostname    | port | time_start_us    | connect_success_time_us | connect_error |
@@ -288,7 +287,7 @@ FLUSH PRIVILEGES;
 Check that the user has been created.
 
 ```sql
-select user,host from mysql.user;
+SELECT user,host FROM mysql.user;
 ```
 
 	+--------------+--------------------------+
@@ -306,7 +305,7 @@ select user,host from mysql.user;
 ProxySQL is now ready to serve traffic on port `6033`. Let's use two methods to test our proxy.
 
 1. A python script on the Docker host that will send requests to `TCP/16033`. This port is mapped to `TCP/6033` in the ProxySQL container.
-2. A new container, in the same Docker network as the ProcsySQL, with the `mysql`client command line interface. This client will use `TCP/6033`.
+2. A new container, in the same Docker network as the ProxySQL, with the `mysql`client command line interface. This client will use `TCP/6033`.
 
 ### Python
 
@@ -316,18 +315,18 @@ The following script is not meant to be optimal but rather to initiate as many c
 import mysql.connector  
 import logging  
 import time  
-  
+
 MAX_QUERY = 25  
-  
+
 def getHostname(db):  
     try:  
         cursor = db.cursor(dictionary=True)  
         cursor.execute("SELECT @@hostname hostname")  
-  
+
         # get all records  
         records = cursor.fetchall()  
         host = records[0]['hostname']  
-  
+
         cursor.close()  
     except mysql.connector.ProgrammingError as error:  
         logger.error(f'err.errno={error.errno} - err.sqlstate={error.sqlstate} - err.msg={error.msg}')  
@@ -336,22 +335,22 @@ def getHostname(db):
         logger.error(error)  
         host = None  
     return host  
-  
-  
+
+
 if __name__ == '__main__':  
     # logger config  
     logger = logging.getLogger()  
     logging.basicConfig(level=logging.INFO,  
     format='%(asctime)s: %(levelname)s: %(message)s')  
-  
+
     for _ in range(MAX_QUERY):  
         try:  
             # creating connection to database  
             mydb = mysql.connector.connect(  
-                host="localhost",  
-                user="clients",  
-                password="clients",  
-                port="16033",  
+            host="localhost",  
+            user="clients",  
+            password="clients",  
+            port="16033",  
         )  
         except mysql.connector.ProgrammingError as err:  
             logger.error(f'err.errno={err.errno} - err.sqlstate={err.sqlstate} - err.msg={err.msg}')  
@@ -361,15 +360,15 @@ if __name__ == '__main__':
             # get the hostname and SQL version of server  
             db_Info = mydb.get_server_info()  
             logger.info(f"Connected to MySQL Server: {getHostname(mydb)} - version: {db_Info}")  
-  
+
             if mydb.is_connected():  
                 mydb.close()  
-  
+
             # wait  
     time.sleep(1)
 ```
 
-### MySQL command line interface 
+### MySQL command line interface
 
 Exit the SQL client started at the beginning of this workshop. Use the same image but with a different SQL statement. The port now is `TCP/6033` which is the default port used for the MySQL protocol. If you execute the query multiple times, you will see responses from `master1` and `master2` in round robin.
 
@@ -398,7 +397,7 @@ mysql -u clients -pclients -h proxysql -P6033 -e"SELECT @@hostname hostname"
 
 Nice and useful links.
 
-- [ProxySQL](https://proxysql.com/documentation/ProxySQL-Configuration/)
+- [ProxySQL Initial Configuration](https://proxysql.com/documentation/ProxySQL-Configuration/)
 - [Nice MySQL training](https://www.mysqltutorial.org/)
 
 ## License
@@ -406,6 +405,3 @@ Nice and useful links.
 This project is licensed under the [MIT license](LICENSE).
 
 [*^ back to top*](#ProxySQL-on-Docker)
-
-
-
