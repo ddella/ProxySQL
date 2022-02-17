@@ -20,32 +20,32 @@ Those are the tables at our disposal. Each table provides specific information a
 SHOW TABLES FROM stats;
 ```
 
-   +--------------------------------------+
-   | tables                               |
-   +--------------------------------------+
-   | global_variables                     |
-   | stats_memory_metrics                 |
-   | stats_mysql_client_host_cache        |
-   | stats_mysql_client_host_cache_reset  |
-   | stats_mysql_commands_counters        |
-   | stats_mysql_connection_pool          |
-   | stats_mysql_connection_pool_reset    |
-   | stats_mysql_errors                   |
-   | stats_mysql_errors_reset             |
-   | stats_mysql_free_connections         |
-   | stats_mysql_global                   |
-   | stats_mysql_gtid_executed            |
-   | stats_mysql_prepared_statements_info |
-   | stats_mysql_processlist              |
-   | stats_mysql_query_digest             |
-   | stats_mysql_query_digest_reset       |
-   | stats_mysql_query_rules              |
-   | stats_mysql_users                    |
-   | stats_proxysql_servers_checksums     |
-   | stats_proxysql_servers_metrics       |
-   | stats_proxysql_servers_status        |
-   +--------------------------------------+
-   21 rows in set (0.003 sec)
+      +--------------------------------------+
+      | tables                               |
+      +--------------------------------------+
+      | global_variables                     |
+      | stats_memory_metrics                 |
+      | stats_mysql_client_host_cache        |
+      | stats_mysql_client_host_cache_reset  |
+      | stats_mysql_commands_counters        |
+      | stats_mysql_connection_pool          |
+      | stats_mysql_connection_pool_reset    |
+      | stats_mysql_errors                   |
+      | stats_mysql_errors_reset             |
+      | stats_mysql_free_connections         |
+      | stats_mysql_global                   |
+      | stats_mysql_gtid_executed            |
+      | stats_mysql_prepared_statements_info |
+      | stats_mysql_processlist              |
+      | stats_mysql_query_digest             |
+      | stats_mysql_query_digest_reset       |
+      | stats_mysql_query_rules              |
+      | stats_mysql_users                    |
+      | stats_proxysql_servers_checksums     |
+      | stats_proxysql_servers_metrics       |
+      | stats_proxysql_servers_status        |
+      +--------------------------------------+
+      21 rows in set (0.003 sec)
 
 
 ## Useful Links
