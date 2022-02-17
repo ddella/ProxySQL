@@ -237,14 +237,14 @@ SAVE MYSQL VARIABLES TO DISK;
 
 ## MySQL Users
 
-The username in this section is the one used by the client or if you prefer the frontend. As an example, if you have a website developped in PHP, 
+> The username, in this section, is the one used by the client or if you prefer, the frontend. As an example, if you have a website developped in PHP, it's the username configured in your PHP code to access the database. See below and example of what would be our configuration with a ProxySQL in front of MariaDB SQL servers.
 
 ```php
-   $host       = "proxysql"; // the SQL server (or proxy or load balancer)
-   $username   = "clients";  // the username to connect on the database
-   $password   = "clients";  // the password
-   $dbname     = "webapp";   // the database name
-   $dbtable    = "users";    // the table in the database
+$host       = "proxysql"; // the SQL server (or proxy or load balancer)
+$username   = "clients";  // the username to connect on the database
+$password   = "clients";  // the password
+$dbname     = "webapp";   // the database name
+$dbtable    = "users";    // the table in the database
 ````
 
 After configuring the MySQL server backends in `mysql_servers`, the next step is to configure `mysql` users on ProxySQL **and** the backend servers. In ProxySQL, this is performed by adding entries to the `mysql_users` table. On MariaDB, this is performed by adding entries to the `user` table in the database `mysql`.
