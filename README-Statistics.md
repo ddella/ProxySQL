@@ -50,9 +50,9 @@ SHOW TABLES FROM stats;
 
 The `stats_mysql_connection_pool` table shows information related to the MySQL backends, connection and overall traffic. The status of each server is tracked based on the health check results.
 
-. Healthy servers will have a status of `ONLINE`
-. Servers termporarily removed are `SHUNNED`
-. Server removed (completely removed, or moved away from a hostgroup) is internally marked as `OFFLINE_HARD`
+* Healthy servers will have a status of `ONLINE`
+* Servers termporarily removed are `SHUNNED`
+* Server removed (completely removed, or moved away from a hostgroup) is internally marked as `OFFLINE_HARD`
 
 ```sql
 SELECT * FROM stats.stats_mysql_connection_pool;
