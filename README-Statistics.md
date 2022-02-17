@@ -144,4 +144,4 @@ Nice and useful links.
 
 This project is licensed under the [MIT license](LICENSE).
 
-[*^ back to top*](#ProxySQL-on-Docker)
+[*^ back to top*](#ProxySQL-Statistics)
