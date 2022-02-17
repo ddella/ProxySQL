@@ -325,53 +325,53 @@ def getHostname(db):
         cursor.execute("SELECT @@hostname hostname")  
   
         # get all records  
-  records = cursor.fetchall()  
+        records = cursor.fetchall()  
         host = records[0]['hostname']  
   
         cursor.close()  
     except mysql.connector.ProgrammingError as error:  
         logger.error(f'err.errno={error.errno} - err.sqlstate={error.sqlstate} - err.msg={error.msg}')  
         host = None  
- except mysql.connector.Error as error:  
+    except mysql.connector.Error as error:  
         logger.error(error)  
         host = None  
- return host  
+    return host  
   
   
 if __name__ == '__main__':  
     # logger config  
-  logger = logging.getLogger()  
+    logger = logging.getLogger()  
     logging.basicConfig(level=logging.INFO,  
-  format='%(asctime)s: %(levelname)s: %(message)s')  
+    format='%(asctime)s: %(levelname)s: %(message)s')  
   
     for _ in range(MAX_QUERY):  
         try:  
             # creating connection to database  
-  mydb = mysql.connector.connect(  
+            mydb = mysql.connector.connect(  
                 host="localhost",  
-  user="clients",  
-  password="clients",  
-  port="16033",  
-  )  
+                user="clients",  
+                password="clients",  
+                port="16033",  
+        )  
         except mysql.connector.ProgrammingError as err:  
             logger.error(f'err.errno={err.errno} - err.sqlstate={err.sqlstate} - err.msg={err.msg}')  
         except mysql.connector.Error as err:  
             logger.error(err)  
         else:  
             # get the hostname and SQL version of server  
-  db_Info = mydb.get_server_info()  
+            db_Info = mydb.get_server_info()  
             logger.info(f"Connected to MySQL Server: {getHostname(mydb)} - version: {db_Info}")  
   
             if mydb.is_connected():  
                 mydb.close()  
   
             # wait  
-  time.sleep(1)
+    time.sleep(1)
 ```
 
 ### MySQL command line interface 
 
-Exit the SQL client started at the beginning of this workshop and execute SQL statement towards the ProxySQL server. If you execute the query multiple times, you will see responses from `master1` and `master2` in round robin.
+Exit the SQL client started at the beginning of this workshop. Use the same image but with a different SQL statement. The port now is `TCP/6033` which is the default port used for the MySQL protocol. If you execute the query multiple times, you will see responses from `master1` and `master2` in round robin.
 
 ```sh
 docker run -it --network MariaDB --rm \
