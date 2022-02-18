@@ -401,7 +401,7 @@ mysql -u clients -pclients -h proxysql -P6033 -e"SELECT @@hostname hostname"
 
 ## ProxySQL backup (optional)
 
-If you're satisfied of the configuration you just build, you can back it up for futur use. The database of ProxySQL is in the directory `/var/lib/proxysql` inside the container. You just need to copy the directory from the container to your local disk.
+If you're satisfied with the configuration you just build, you can back it up for futur use. The database of ProxySQL is in the directory `/var/lib/proxysql` inside the container. You just need to copy the directory from the container to your local disk.
 
 Following are the steps to backup the configuration and start a new ProxySQL from the backup. This will delete the container you just build. Make sure you know what you're doing 😉
 
@@ -411,7 +411,7 @@ Following are the steps to backup the configuration and start a new ProxySQL fro
 docker stop proxysql
 ```
 
-2. Copy the directory from the container to you local disk.
+2. Copy the directory from the container to you local disk. `/path/to/local/directory` is your local directory.
 
 ```docker
 docker cp proxysql:/var/lib/proxysql /path/to/local/directory
@@ -436,6 +436,8 @@ docker run -d --network MariaDB \
 -v /path/to/local/directory:/var/lib/proxysql \
 proxysql/proxysql
 ```
+
+You should have a running ProxySQL with the same configuration. The only drawback is that the backup includes all the statistics of the previous server.
 
 ## ProxySQL Statistics
 
